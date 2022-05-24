@@ -12,7 +12,7 @@ const createUser = async function (req, res) {
     try {
         const body = req.body;
 
-        if (!validator.isValidDetails)
+        if (!validator.isValidDetails(body))
             return res
                 .status(400)
                 .send({ status: false, message: "Invalid Request" });
@@ -176,8 +176,21 @@ const createUser = async function (req, res) {
 const loginUser = async function(req,res){
   try{
        const loginData = req.body;
-
+       
        const { email,password } = loginData;
+
+       if (!validator.isValidDetails(loginData))
+       return res.status(400).send({ status: false, message: "Invalid Request" });
+       
+       if(!validator.isValidValue(email))
+       return res.status(400).send({status:false,message:"EmailId is Required"});
+
+       if(!validator.isValidEmail(email))
+       return res.status(400).send({status:false,message:"EmailId is Required"});
+
+       if(!validator.isValidValue(password))
+       return res.status(400).send({status:false,message:"Password is Required"});
+
        if(email && password)
        { 
          const userDetail = await userModel.findOne({email});
