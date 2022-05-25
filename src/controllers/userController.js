@@ -239,7 +239,160 @@ const loginUser = async function(req,res){
    return res.status(200).send({status:true,message:"user profile details",data:getUserById})
  }
 
+ const updateUser = async function(req,res){
+    try{
+    const userId = req.params.userId
+    if(!validator.isValidObjectId(userId))
+       return res.status(400).send(`${userId} is not valid`)
+    
+    const findId = await userModel.findById(userId) 
+    if(!findId)
+       return res.status(404).send({ status: false, message: "No User With this Id" })
+
+    if(req.userId!=userId)
+       return res.status(403).send({ status: false, message: "Unauthorised Access" })
+
+    let body = req.body
+    
+    let { fname, lname, email, phone, password } = body;
+    const addressString = req.body.address;
+
+    const files = req.files;
+    if (files && files.length > 0) {
+        let profileImage = await uploadFile(files[0]);
+        body.profileImage= profileImage
+    }
+
+if(!(body&&files))
+    return res.status(400).send({ status: false, message: "Invalid Request" })
+
+if(fname||fname==''){
+    if (!validator.isValidValue(fname))
+        return res
+            .status(400)
+            .send({ status: false, message: "Please provide First name" });
+
+    if(!validator.isValidName(fname)) 
+        return res
+            .status(400)
+            .send({ status: false, message: "Please provide valid First name" });  
+}    
+if(lname||lname==''){
+    if (!validator.isValidValue(lname))
+        return res
+            .status(400)
+            .send({ status: false, message: "Please provide Last name" });
+
+    if(!validator.isValidName(lname)) 
+        return res
+            .status(400)
+            .send({ status: false, message: "Please provide valid Last name" });       
+}
+if(email||email==''){
+    if (!validator.isValidValue(email))
+        return res
+            .status(400)
+            .send({ status: false, message: "Please provide Email" });
+
+    if (!validator.isValidEmail(email)) {
+        return res
+            .status(400)
+            .send({ status: false, message: "Please provide valid Email Address" });
+    }
+
+    const isDuplicateEmail = await userModel.findOne({ email });
+    if (isDuplicateEmail) {
+        return res
+            .status(409)
+            .send({ status: false, message: "email already exists" });
+    }
+}
+if(password||password==''){
+    if (!validator.isValidValue(password)) {
+        return res
+            .status(400)
+            .send({ status: false, messege: "Please provide password" });
+    }
+
+    if (password.length < 8 || password.length > 15) {
+        return res
+            .status(400)
+            .send({ status: false, message: "Password must be of 8-15 letters." });
+    }
+    
+    const salt = await bcrypt.genSalt(10);
+    password = await bcrypt.hash(password, salt);
+}
+if(phone||phone==''){
+    if (!validator.isValidValue(phone)) {
+        return res
+            .status(400)
+            .send({ status: false, messege: "Please provide phone number" });
+    }
+
+    if (!validator.isValidPhone(phone)) {
+        return res
+            .status(400)
+            .send({ status: false, message: "Please provide valid phone number" });
+    }
+
+    const isDuplicatePhone = await userModel.findOne({ phone });
+    if (isDuplicatePhone)
+        return res
+            .status(409)
+            .send({ status: false, message: "phone no. already exists" });
+}
+
+if(addressString||addressString==''){
+
+        const address = JSON.parse(addressString)  
+        body.address=address
+        const { shipping, billing } = address
+
+        if (!validator.isValidValue(shipping.street)) {
+            return res.status(400).send({ status: false, message: " Enter Street Name" })
+        }
+
+        if (!validator.isValidValue(shipping.city)) {
+            return res.status(400).send({ status: false, message: " Enter City Name" })
+        }
+
+        if (!validator.isValidValue(shipping.pincode)) {
+            return res.status(400).send({ status: false, message: " Enter Pincode" })
+        }
+
+        if (!validator.isValidPincode(shipping.pincode)) {
+            return res.status(400).send({ status: false, message: "Enter Valid Shipping Pincode" })
+        }
+
+        if (!validator.isValidValue(billing.street)) {
+            return res.status(400).send({ status: false, message: " Enter Street Name" })
+        }
+
+        if (!validator.isValidValue(billing.city)) {
+            return res.status(400).send({ status: false, message: " Enter City Name" })
+        }
+
+        if (!validator.isValidValue(billing.pincode)) {
+            return res.status(400).send({ status: false, message: " Enter Pincode" })
+        }
+
+        if (!validator.isValidPincode(billing.pincode)) {
+            return res.status(400).send({ status: false, message: "Enter Valid billing Pincode" })
+        }
+}
+
+ 
+    const updateuser = await userModel.findByIdAndUpdate( userId,{$set:body},{new: true})
+    return res.status(200).send({ status: true, message: "Success", data: updateuser })
+
+  }
+  catch(err){
+    return res.status(500).send({msg:err.message})}
+  }
+
 
 module.exports.createUser = createUser;
 module.exports.loginUser = loginUser;
 module.exports.getUser = getUser;
+module.exports.updateUser = updateUser;
