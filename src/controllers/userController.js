@@ -1,8 +1,6 @@
 const userModel = require("../models/userModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const saltRounds = 10;
-
 const { uploadFile } = require("../aws/aws");
 const validator = require("../validations/validator");
 
@@ -94,9 +92,6 @@ const createUser = async function (req, res) {
                 .send({ status: false, message: "Please provide address" });
         }
 
-        console.log(addressString)
-        console.log(typeof addressString)
-        console.log(addressString instanceof Object)
         const address = JSON.parse(addressString);
 
         if (
@@ -224,7 +219,7 @@ const loginUser = async function(req,res){
   
 
   const getUser=async function(req,res){
- 
+    try{
     const userId=req.params.userId;
  
     if(!validator.isValidObjectId(userId)){
@@ -234,10 +229,14 @@ const loginUser = async function(req,res){
    const getUserById=await userModel.findById(userId);
    if(!getUserById){ 
      return res.status(404).send({status:false,msg:"no user exists with this userId"})
-   }
+    }
  
    return res.status(200).send({status:true,message:"user profile details",data:getUserById})
- }
+    }
+    catch(err){
+    return res.status(500).send({status:false,message:err.message})
+    }
+}
 
  const updateUser = async function(req,res){
     try{
