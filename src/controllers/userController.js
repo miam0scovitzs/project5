@@ -224,9 +224,30 @@ const loginUser = async function(req,res){
      }
 }
 
-
+const getUser=async function(req,res){
+ 
+    let userId=req.params.userId;
+ 
+    if(!validation.isValidObjectId(userId)){
+ 
+     return res.status(400).send({status:false,msg:"UserId is not a valid userId"})
+    
+   }
+ 
+   let getUserById=await userModel.findById(userId);
+ 
+   if(!getUserById){
+     
+     return res.status(404).send({status:false,msg:"no user exists with this userId"})
+ 
+   }
+ 
+   return res.status(200).send({status:true,msg:"user profile details",data:getUserById})
+ 
+ 
+ }
 
 
 module.exports.createUser = createUser;
 module.exports.loginUser = loginUser;
-
+module.exports.getUser = getUser;
