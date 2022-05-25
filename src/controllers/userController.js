@@ -1,15 +1,18 @@
 const userModel = require("../models/userModel");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+const saltRounds = 10;
+
 const { uploadFile } = require("../aws/aws");
 const validator = require("../validations/validator");
-const bcrypt = require("bcrypt");
+
 ////////////////////////////aws////////////////////////////////
 
 const createUser = async function (req, res) {
     try {
         const body = req.body;
 
-        if (!validator.isValidDetails)
+        if (!validator.isValidDetails(body))
             return res
                 .status(400)
                 .send({ status: false, message: "Invalid Request" });
@@ -170,29 +173,60 @@ const createUser = async function (req, res) {
 };
 
 
-const getUser=async function(req,res){
- 
-    let userId=req.params.userId;
- 
-    if(!validator.isValidObjectId(userId)){
- 
-     return res.status(400).send({status:false,msg:"UserId is not a valid userId"})
-    
+//API #2 :POST /login
+// Allow an user to login with their email and password.
+// On a successful login attempt return the userId and a JWT token contatining the userId, exp, iat.
+
+const loginUser = async function(req,res){
+  try{
+       const loginData = req.body;
+       
+       const { email,password } = loginData;
+
+       if (!validator.isValidDetails(loginData))
+       return res.status(400).send({ status: false, message: "Invalid Request" });
+       
+       if(!validator.isValidValue(email))
+       return res.status(400).send({status:false,message:"EmailId is Required"});
+
+       if(!validator.isValidEmail(email))
+       return res.status(400).send({status:false,message:"EmailId is Required"});
+
+       if(!validator.isValidValue(password))
+       return res.status(400).send({status:false,message:"Password is Required"});
+
+       if(email && password)
+       { 
+         const userDetail = await userModel.findOne({email});
+          if(!userDetail)
+           return res.status(401).send({status:false,message:"EmailId is NOT Correct"});
+       
+       let encryptedPassword = userDetail.password;
+
+       const passwordCheck = await bcrypt.compare(password,encryptedPassword);
+
+       if(!passwordCheck)
+         return res.status(401).send({status:false,message:"Password is NOT Correct"});
+
+       const userId = userDetail._id;
+       const token = await jwt.sign({
+        userId : userId,
+        iat: Math.floor(Date.now()/1000),
+        exp: Math.floor(Date.now()/1000)+24*60*60 // expirydate =24 hours 
+       },
+       "project5Group42")
+
+       return res.status(200).send({status:true,message:"User login successfull",data:{userId,token}})
+       }
    }
- 
-   let getUserById=await userModel.findById(userId);
- 
-   if(!getUserById){
-     
-     return res.status(404).send({status:false,msg:"no user exists with this userId"})
- 
-   }
- 
-   return res.status(200).send({status:true,msg:"user profile details",data:getUserById})
- 
- 
- }
+     catch(err){
+      return res.status(500).send({status:false,message:err.message})
+     }
+}
+
+
+
 
 module.exports.createUser = createUser;
-module.exports.getUser=getUser
+module.exports.loginUser = loginUser;
 
