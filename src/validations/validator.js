@@ -27,4 +27,6 @@ const isValidPincode = function (value) {
     if (!isNaN(value) && value.toString().length == 6) return true
 }
 
-module.exports = { isValidValue, isValidDetails,isValidName,isValidEmail,isValidPhone, isValidPincode }
+const isValidObjectId = (objectId) => mongoose.Types.ObjectId.isValid(objectId)
+
+module.exports = { isValidValue, isValidDetails,isValidName,isValidEmail,isValidPhone, isValidPincode,isValidObjectId }
