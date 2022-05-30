@@ -4,6 +4,7 @@ const router = express.Router();
 ///////////////// [ IMPORTED CONTROLLERS ] /////////////////
 const userController= require("../controllers/userController");
 const productController = require("../controllers/productController");
+const cartController = require("../controllers/cartController");
 const middleware = require('../middleware/auth')
 
 
@@ -19,6 +20,10 @@ router.get('/products/:productId',productController.getProductById)
 router.put('/products/:productId',productController.updateProduct)
 router.delete('/products/:productId',productController.deleteProduct)
 
+router.post('/users/:userId/cart',middleware.authUser,cartController.createCart)
+router.get('/users/:userId/cart',middleware.authUser,userController.getUser)
+router.put('/users/:userId/cart',middleware.authUser,userController.updateUser)
+router.delete('/users/:userId/cart',middleware.authUser,productController.deleteProduct)
 
 ///////////////// [ EXPRORTED ROUTHER ] /////////////////
 module.exports = router;
