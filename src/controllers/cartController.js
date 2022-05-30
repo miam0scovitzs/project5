@@ -54,7 +54,7 @@ const createCart = async (req, res) => {
         }
 
         let { _id, items, totalPrice } = findCart
-        
+
         for (let i = 0; i < items.length; i++) {
             if (productId == items[i].productId) {
 

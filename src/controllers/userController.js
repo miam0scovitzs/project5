@@ -1,8 +1,9 @@
 const userModel = require("../models/userModel");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 const { uploadFile } = require("../aws/aws");
 const validator = require("../validations/validator");
-const bcrypt = require("bcrypt");
+
 ////////////////////////////aws////////////////////////////////
 
 const createUser = async function (req, res) {
@@ -90,6 +91,7 @@ const createUser = async function (req, res) {
                 .status(400)
                 .send({ status: false, message: "Please provide address" });
         }
+
         const address = JSON.parse(addressString);
 
         if (
@@ -214,8 +216,9 @@ const loginUser = async function(req,res){
        }
   }
   
+
   const getUser=async function(req,res){
- 
+    try{
     const userId=req.params.userId;
  
     if(!validator.isValidObjectId(userId)){
@@ -225,37 +228,41 @@ const loginUser = async function(req,res){
    const getUserById=await userModel.findById(userId);
    if(!getUserById){ 
      return res.status(404).send({status:false,msg:"no user exists with this userId"})
-   }
+    }
  
    return res.status(200).send({status:true,message:"user profile details",data:getUserById})
- }
+    }
+    catch(err){
+    return res.status(500).send({status:false,message:err.message})
+    }
+}
 
-
-const updateUser = async function(req,res){
+ const updateUser = async function(req,res){
     try{
-    let userId = req.params.userId
+    const userId = req.params.userId
     if(!validator.isValidObjectId(userId))
-    return res.status(400).send(`${userId} is not valid`)
+       return res.status(400).send(`${userId} is not valid`)
     
     const findId = await userModel.findById(userId) 
-    if(!findId) return res.status(404).send({ status: false, message: "No User With this Id" })
+    if(!findId)
+       return res.status(404).send({ status: false, message: "No User With this Id" })
 
     if(req.userId!=userId)
-        return res.status(403).send({ status: false, message: "Unauthorised Access" })
+       return res.status(403).send({ status: false, message: "Unauthorised Access" })
 
     let body = req.body
     
     let { fname, lname, email, phone, password } = body;
     const addressString = req.body.address;
 
-    let files = req.files;
+    const files = req.files;
     if (files && files.length > 0) {
         let profileImage = await uploadFile(files[0]);
         body.profileImage= profileImage
     }
 
 if(!(body&&files))
-return res.status(400).send({ status: false, message: "Invalid Request" })
+    return res.status(400).send({ status: false, message: "Invalid Request" })
 
 if(fname||fname==''){
     if (!validator.isValidValue(fname))
@@ -267,8 +274,8 @@ if(fname||fname==''){
         return res
             .status(400)
             .send({ status: false, message: "Please provide valid First name" });  
-    }    
-    if(lname||lname==''){
+}    
+if(lname||lname==''){
     if (!validator.isValidValue(lname))
         return res
             .status(400)
@@ -278,8 +285,8 @@ if(fname||fname==''){
         return res
             .status(400)
             .send({ status: false, message: "Please provide valid Last name" });       
-    }
-    if(email||email==''){
+}
+if(email||email==''){
     if (!validator.isValidValue(email))
         return res
             .status(400)
@@ -291,7 +298,7 @@ if(fname||fname==''){
             .send({ status: false, message: "Please provide valid Email Address" });
     }
 
-    let isDuplicateEmail = await userModel.findOne({ email });
+    const isDuplicateEmail = await userModel.findOne({ email });
     if (isDuplicateEmail) {
         return res
             .status(409)
@@ -327,7 +334,7 @@ if(phone||phone==''){
             .send({ status: false, message: "Please provide valid phone number" });
     }
 
-    let isDuplicatePhone = await userModel.findOne({ phone });
+    const isDuplicatePhone = await userModel.findOne({ phone });
     if (isDuplicatePhone)
         return res
             .status(409)
@@ -336,7 +343,7 @@ if(phone||phone==''){
 
 if(addressString||addressString==''){
 
-        const address = JSON.parse(addressString)  // Converting Striing to JSON
+        const address = JSON.parse(addressString)  
         body.address=address
         const { shipping, billing } = address
 
@@ -371,14 +378,19 @@ if(addressString||addressString==''){
         if (!validator.isValidPincode(billing.pincode)) {
             return res.status(400).send({ status: false, message: "Enter Valid billing Pincode" })
         }
-    }
+}
 
  
-    let updateuser = await userModel.findByIdAndUpdate( userId,{$set:body},{new: true})
+    const updateuser = await userModel.findByIdAndUpdate( userId,{$set:body},{new: true})
     return res.status(200).send({ status: true, message: "Success", data: updateuser })
 
   }
   catch(err){
     return res.status(500).send({msg:err.message})}
   }
-  module.exports={createUser , loginUser, getUser, updateUser}
+
+
+module.exports.createUser = createUser;
+module.exports.loginUser = loginUser;
+module.exports.getUser = getUser;
+module.exports.updateUser = updateUser;
