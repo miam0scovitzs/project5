@@ -77,4 +77,56 @@ const createCart = async (req, res) => {
         return res.status(500).send({ status: false, message: error.message });
     }
 }
+
+const getCart = async(req,res)=>{
+    try{
+    let userId = req.params.userId
+    if (!validator.isValidObjectId(userId))
+    return res.status(400).send({ status: false, message: "Please provide the valid userId" });
+
+    const findUser = await userModel.findById( userId)
+    if(!findUser) return res.status(404).send({status: false, message:"User does not exists"})
+
+    if(userId!=req.userId)
+    return res.status(403).send({status: false, message:"Unauthorised Access"})
+
+    const findCart = await cartModel.findOne({ userId})
+    if(!findCart) 
+    return res.status(404).send({status: false, message:"cart does not exists"})
+
+
+    return res.status(200).send({ status: true,message: 'Success',data:findCart})
+
+}
+catch(err){
+    return res.status(500).send({status: false,message:err.message})}
+}
+
+const deleteCart = async(req,res)=>{
+    let userId = req.params.userId
+
+    if (!validator.isValidObjectId(userId))
+    return res.status(400).send({ status: false, message: "Please provide the valid userId" });
+
+    const findUser = await userModel.findById( userId)
+    if(!findUser) return res.status(404).send({status: false, message:"User does not exists with given id"})
+
+    if(userId!=req.userId)
+    return res.status(403).send({status: false, message:"Unauthorised Access"})
+
+    const findCart = await cartModel.findOne({userId})
+    if(!findCart)
+    return res.status(404).send({status: false, message:"cart does not exists"})
+
+    if(findCart.totalPrice==0)
+    return res.status(400).send({status: false, message:"Cart is empty."})
+      
+    await cartModel.findOneAndUpdate({userId},{$set:{items:[],totalPrice:0,totalItems:0}})
+    return res.status(204).send({status: true, message:"Products in cart deleted successfully"})
+
+}
+
+
 module.exports.createCart=createCart
+module.exports.getCart=getCart
+module.exports.deleteCart=deleteCart

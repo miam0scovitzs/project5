@@ -21,9 +21,9 @@ router.put('/products/:productId',productController.updateProduct)
 router.delete('/products/:productId',productController.deleteProduct)
 
 router.post('/users/:userId/cart',middleware.authUser,cartController.createCart)
-router.get('/users/:userId/cart',middleware.authUser,userController.getUser)
-router.put('/users/:userId/cart',middleware.authUser,userController.updateUser)
-router.delete('/users/:userId/cart',middleware.authUser,productController.deleteProduct)
+router.get('/users/:userId/cart',middleware.authUser,cartController.getCart)
+//router.put('/users/:userId/cart',middleware.authUser,cartController.updateCart)
+router.delete('/users/:userId/cart',middleware.authUser,cartController.deleteCart)
 
 ///////////////// [ EXPRORTED ROUTHER ] /////////////////
 module.exports = router;
