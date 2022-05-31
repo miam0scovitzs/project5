@@ -2,7 +2,6 @@ const productModel = require("../models/productModel");
 const cartModel = require("../models/cartModel");
 const userModel = require("../models/userModel");
 const validator = require("../validations/validator");
-
 const createCart = async (req, res) => {
     try{
         const userId = req.params.userId
@@ -54,13 +53,15 @@ const createCart = async (req, res) => {
         }
 
         let { _id, items, totalPrice } = findCart
-
+        
         for (let i = 0; i < items.length; i++) {
             if (productId == items[i].productId) {
 
                 const newPrice = (productDoc.price) * quantity + totalPrice
+                items[i].quantity += quantity
+                const newObj ={newPrice,items}
 
-                const addToCart = await cartModel.findByIdAndUpdate(_id, { $set: { quantity: { $inc: quantity }, totalPrice: newPrice, totalItems: items.length } }, { new: true })
+                const addToCart = await cartModel.findByIdAndUpdate(_id,newObj, { new: true })
                 return res.status(201).send({ status: true, message: "Success", data: addToCart })
             }
         }
