@@ -5,7 +5,7 @@ const validator = require("../validations/validator");
 
 const createProduct=async function(req,res){
 
-  try{
+
   
   let data=req.body;
   let files = req.files;
@@ -13,7 +13,7 @@ const createProduct=async function(req,res){
   
   if(!data){
   
-      return res.status(400).sned({status:false,msg:"no data is sent"})
+      return res.status(400).send({status:false,msg:"no data is sent"})
   }
   
   let{title,description,price,currencyId,currencyFormat,isFreeShipping,style,installments,isDeleted}=data;
@@ -24,23 +24,19 @@ const createProduct=async function(req,res){
       return res.status(400).send({status:false,msg:"availableSizes not selected"})
   }
   
-  installments=installments.trim();
+  //installments=installments.trim();
   installments=parseInt(installments)
-    
-  if(!title){
-      return res.status(400).send({status:false,msg:"title is missing"})
-  
-  }
-  
+
   if(!validator.isValidValue(title)){
   
       return res.status(400).send({status:false,msg:"title is invalid"})
   }
+
+
   
-  let titleExists=await productModel.findOne({title:title})
+  let titleExists=await productModel.findOne({title:title,isDeleted:false})
   
   if(titleExists){
-  
       return res.status(400).send({status:false,msg:"title already exists "})
   }
   
@@ -62,11 +58,7 @@ const createProduct=async function(req,res){
   
   if(typeof price!=='number' || price.toString().trim().length==0) return res.status(400).send({status:false,msg:"price is invalid"})
   
-  
-  
-  if(!availableSizes){
-      return res.status(400).send({status:false,msg:"availableSizes is not selected"})    
-  }
+
   
   availableSizes=JSON.parse(availableSizes)
   
@@ -77,7 +69,7 @@ const createProduct=async function(req,res){
   if(availableSizes==='undefined' || availableSizes===null) return res.status(400).send({status:false,msg:"availableSizes is not valid"})
   
   let a=0
-  for(let i=0;i<myList.length;i++)
+  for(let i=0;i<myList.length;i++)         //["S", "XS","M","X", "L","XXL", "XL"] 
   {
       for(let j=0;j<availableSizes.length;j++)
       {
@@ -88,12 +80,10 @@ const createProduct=async function(req,res){
           }
       }
   }
-  
+
   if(a!=availableSizes.length) return res.status(400).send({status:false,msg:"invalid availableSizes seletion"})
-  
-  
-  
-  
+
+
   if(typeof currencyId!=='string') return res.status(400).send({status:false,msg:"invalid currencyId"})
   
   if(currencyId==='undefined' || currencyId==null) return res.status(400).send({status:false,msg:"currencyId is invalid"})
@@ -101,7 +91,6 @@ const createProduct=async function(req,res){
   if(typeof currencyId==='string' && currencyId.trim().length==0) return res.status(400).send({status:false,msg:"currencyId is not selected"})
   
   if(typeof currencyId==='string' && currencyId.trim()!=='INR') return res.status(400).send({status:false,msg:"wrong currencyId selected"})
-  
   
   
 
@@ -116,21 +105,20 @@ const createProduct=async function(req,res){
   
   
    
-  
+  if(isFreeShipping){
   if(isFreeShipping.length==0) 
   isFreeShipping=false
   else{
   isFreeShipping=isFreeShipping.trim().toLowerCase();
   isFreeShipping=JSON.parse(isFreeShipping)
-  }
+  }}
+  isFreeShipping=false
    if(typeof isFreeShipping!=="boolean") return res.status(400).send({status:false,msg:"not a boolean value"})
   
   
   
   
   if(installments){
-      installments=installments.toString().trim()
-  
   if(!Number.isInteger(installments)) return res.status(400).send({status:false,msg:"installments is invalid select only integer value"})
   }
   
@@ -189,10 +177,7 @@ const createProduct=async function(req,res){
   return res.status(201).send({status:true,msg:"success",data:newRecord})
   
   
-  
-  } catch (error) {
-      return res.status(500).send({ status: false, message: error.message });
-  }
+
   
   }
 

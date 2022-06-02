@@ -229,6 +229,9 @@ const loginUser = async function(req,res){
    if(!getUserById){ 
      return res.status(404).send({status:false,msg:"no user exists with this userId"})
     }
+
+    if(userId!=req.userId)
+    return res.status(403).send({status: false, message:"Unauthorised Access"})
  
    return res.status(200).send({status:true,message:"user profile details",data:getUserById})
     }

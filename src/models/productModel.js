@@ -4,28 +4,28 @@ const productSchema = new mongoose.Schema(
   {
     title: {
       type: String,
-      required: "title is empty",
+      required: true,
       unique: true,
     },
 
     description: {
       type: String,
-      required: "description is empty",
+      required: true,
     },
 
     price: {
       type: Number,
-      required: "price is empty",
+      required: true,
     },
 
     currencyId: {
       type: String,
-      reuired: "currencyId is empty",
+      required: true,
     },
 
     currencyFormat: {
       type: String,
-      required: "currencyFormat is empty",
+      required: true,
     },
 
     isFreeShipping: {
@@ -35,7 +35,7 @@ const productSchema = new mongoose.Schema(
 
     productImage: {
       type: String,
-      required: "productImage is empty",
+      required: true,
     },
 
     style: {
