@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 
-const authUser = async function(req,res,next){
+const authUser = function(req,res,next){
     try{
         const token = req.header("Authorization","Bearer Token");
         if(!token)
@@ -12,7 +12,9 @@ const authUser = async function(req,res,next){
              return res.status(401).send({status:false,message:"Token is NOT Valid"})
              req.userId = decodedToken.userId;
              next();
-         })   
+         })
+
+         
     }
     catch(err){
          res.status(500).send({status:false,message:err.message})

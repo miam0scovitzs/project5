@@ -167,7 +167,6 @@ const createUser = async function (req, res) {
     }
 };
 
-
 //API #2 :POST /login
 // Allow an user to login with their email and password.
 // On a successful login attempt return the userId and a JWT token contatining the userId, exp, iat.
@@ -230,6 +229,9 @@ const loginUser = async function(req,res){
    if(!getUserById){ 
      return res.status(404).send({status:false,msg:"no user exists with this userId"})
     }
+
+    if(userId!=req.userId)
+    return res.status(403).send({status: false, message:"Unauthorised Access"})
  
    return res.status(200).send({status:true,message:"user profile details",data:getUserById})
     }
